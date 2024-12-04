@@ -1,11 +1,11 @@
 run:
-    flask run
+	flask run
 
 migrate:
-    flask db migrate
+	flask db migrate
 
 upgrade:
-    flask db upgrade
+	flask db upgrade
 
 test:
-    pytest
+	pytest
