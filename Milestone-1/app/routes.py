@@ -18,13 +18,17 @@ def get_students():
 
 @api_bp.route('/students/<int:id>', methods=['GET'])
 def get_student(id):
-    student = Student.query.get_or_404(id)
+    student = Student.query.get(id)
+    if not student:
+        return jsonify({'error': f'Student with id {id} not found'}), 404
     return jsonify({'id': student.id, 'name': student.name, 'age': student.age, 'grade': student.grade})
 
 @api_bp.route('/students/<int:id>', methods=['PUT'])
 def update_student(id):
     data = request.get_json()
-    student = Student.query.get_or_404(id)
+    student = Student.query.get(id)
+    if not student:
+        return jsonify({'error': f'Student with id {id} not found'}), 404
     student.name = data['name']
     student.age = data['age']
     student.grade = data['grade']
@@ -33,7 +37,9 @@ def update_student(id):
 
 @api_bp.route('/students/<int:id>', methods=['DELETE'])
 def delete_student(id):
-    student = Student.query.get_or_404(id)
+    student = Student.query.get(id)
+    if not student:
+        return jsonify({'error': f'Student with id {id} not found'}), 404
     db.session.delete(student)
     db.session.commit()
     return jsonify({'message': 'Student deleted successfully'})
@@ -41,10 +47,3 @@ def delete_student(id):
 @api_bp.route('/healthcheck', methods=['GET'])
 def healthcheck():
     return jsonify({'status': 'healthy'})
-
-# Handle favicon requests
-@api_bp.route('/favicon.ico')
-def favicon():
-    return '', 204
-
-
