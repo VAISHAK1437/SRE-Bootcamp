@@ -5,6 +5,7 @@ DB_CONTAINER = my-postgres
 APP_PORT = 5000
 NETWORK = app-network
 DB_VOLUME = postgres-data
+VERSION = 1.0.0
 
 # Pull the Postgres image
 db-pull:
@@ -27,13 +28,13 @@ db-up: network-create volume-create
 		-e POSTGRES_DB=$$DB_NAME \
 		-p 5432:5432 -d postgres
 
-# Build the Flask app image
+# Build the Flask app image with versioned tagging
 app-build:
-	docker build -t $(APP_IMAGE) .
+	docker build --build-arg VERSION=$(VERSION) -t $(APP_IMAGE):$(VERSION) .
 
-# Run the Flask app container in the network
+# Run the Flask app container in the network, inject environment variables
 app-run: network-create
-	docker run --name $(APP_CONTAINER) --network $(NETWORK) -p $(APP_PORT):5000 -d $(APP_IMAGE)
+	docker run --name $(APP_CONTAINER) --network $(NETWORK) -p $(APP_PORT):5000 -d $(APP_IMAGE):$(VERSION)
 
 app-migrate:
 	# Check if migration files exist; if not, initialize them
@@ -49,18 +50,17 @@ app-migrate:
 			python -m flask db upgrade; \
 		fi"
 
-
-# Backup the database before cleaning (to preserve data)
-db-backup:
-	docker exec $(DB_CONTAINER) pg_dump -U $$DB_USERNAME $$DB_NAME > db_backup.sql || true
-
 # Stop and remove the containers and network (excluding volume)
 clean:
 	docker stop $(DB_CONTAINER) $(APP_CONTAINER) || true
 	docker rm $(DB_CONTAINER) $(APP_CONTAINER) || true
 	docker network rm $(NETWORK) || true
 	# Uncomment to remove volume only if needed
-	docker volume rm $(DB_VOLUME) || true
+	# docker volume rm $(DB_VOLUME) || true
 
 # Full setup with backup
-setup: db-backup clean db-pull db-up app-build app-run app-migrate
+setup: clean db-pull db-up app-build app-run app-migrate
+
+# Remove old images that are not in use
+prune-old-images:
+	docker images -q --filter "dangling=true" | xargs --no-run-if-empty docker rmi
