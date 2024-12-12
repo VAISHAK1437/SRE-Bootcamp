@@ -1,0 +1,41 @@
+version: '3.9'
+
+services:
+  db: 
+    image: postgres:latest
+    container_name: my-postgres
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+      
+  app:
+    build:
+      context: .
+      args:
+        VERSION: ${VERSION}
+    image: app:${VERSION}
+    container_name: app
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - FLASK_ENV=development
+    networks:
+      - app-network
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+
+  
+
+volumes:
+  postgres-data:
+
+networks:
+  app-network:
