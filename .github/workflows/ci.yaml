@@ -1,9 +1,6 @@
 name: CI Pipeline
 
 on:
-  push:
-    paths:
-      - 'Milestone-4/**'
   workflow_dispatch:
 
 jobs:
@@ -25,19 +22,19 @@ jobs:
           password: ${{ secrets.GHCR_TOKEN }}
       
       - name: Pull Postgres image
-        run: make db-pull
+        run: make -C Milestone-4 db-pull
       
       - name: Create Docker network
-        run: make network-create
+        run: make -C Milestone-4 network-create
       
       - name: Create Docker volume
-        run: make volume-create
+        run: make -C Milestone-4 volume-create
       
       - name: Build Docker image
-        run: make app-build
+        run: make -C Milestone-4 app-build
       
       - name: Run Database Migration
-        run: make app-migrate
+        run: make -C Milestone-4 app-migrate
       
       - name: Push Docker image to GHCR
         run: |
