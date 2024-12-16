@@ -14,13 +14,13 @@ compose-migrate:
 	docker compose -f $(COMPOSE_FILE) exec $(APP_SERVICE) sh -c "\
 		if [ ! -d migrations/versions ] || [ -z \"\`ls migrations/versions 2>/dev/null\`\" ]; then \
 			echo 'No migrations found. Initializing...'; \
-			python -m flask db init && \
-			python -m flask db migrate --message 'Initial migration' && \
-			python -m flask db upgrade; \
+			python -m flask db init > /dev/null 2>&1 && \
+			python -m flask db migrate --message 'Initial migration' > /dev/null 2>&1 && \
+			python -m flask db upgrade > /dev/null 2>&1; \
 		else \
 			echo 'Migrations found. Upgrading...'; \
-			python -m flask db stamp head && \
-			python -m flask db upgrade; \
+			python -m flask db stamp head > /dev/null 2>&1 && \
+			python -m flask db upgrade > /dev/null 2>&1; \
 		fi"
 
 # Stop and remove the containers (excluding volumes)
