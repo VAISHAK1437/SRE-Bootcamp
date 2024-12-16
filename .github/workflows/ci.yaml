@@ -50,7 +50,8 @@ jobs:
       
       - name: Push Docker image to GHCR
         run: |
-          docker push ghcr.io/flask-app:${{ github.sha }}
+          docker tag flask-app:${{ github.sha }} ghcr.io/${{ github.actor }}/flask-app:${{ github.sha }}
+          docker push ghcr.io/${{ github.actor }}/flask-app:${{ github.sha }}
 
 
       - name: Clean up Docker containers and network
