@@ -31,6 +31,7 @@ db-up: network-create volume-create
 # Build the Flask app image with versioned tagging
 app-build:
 	docker build --build-arg VERSION=$(VERSION) -t $(APP_IMAGE):$(VERSION) .
+	docker tag $(APP_IMAGE):$(VERSION) ghcr.io/flask-app:$(shell git rev-parse HEAD)
 
 # Run the Flask app container in the network, inject environment variables
 app-run: network-create
