@@ -33,15 +33,14 @@ db-up: network-create volume-create
 
 # Build the Flask app image with versioned tagging
 app-build:
-	app-build:
-		@echo "Building the Docker image..."
-		docker build --build-arg VERSION=$(VERSION) -t $(APP_IMAGE):$(VERSION) .
+	@echo "Building the Docker image..."
+	docker build --build-arg VERSION=$(VERSION) -t $(APP_IMAGE):$(VERSION) .
 
-		@echo "Tagging the image with commit SHA..."
-		docker tag $(APP_IMAGE):$(VERSION) $(GITHUB_REGISTRY)/$(GITHUB_ACTOR)/$(APP_IMAGE):$(GITHUB_SHA)
+	@echo "Tagging the image with commit SHA..."
+	docker tag $(APP_IMAGE):$(VERSION) $(GITHUB_REGISTRY)/$(GITHUB_ACTOR)/$(APP_IMAGE):$(GITHUB_SHA)
 
-		@echo "Pushing the image to GHCR..."
-		docker push $(GITHUB_REGISTRY)/$(GITHUB_ACTOR)/$(APP_IMAGE):$(GITHUB_SHA)
+	@echo "Pushing the image to GHCR..."
+	docker push $(GITHUB_REGISTRY)/$(GITHUB_ACTOR)/$(APP_IMAGE):$(GITHUB_SHA)
 
 # Run the Flask app container in the network, inject environment variables
 app-run: network-create
