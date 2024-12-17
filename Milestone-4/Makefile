@@ -6,6 +6,9 @@ APP_PORT = 5000
 NETWORK = app-network
 DB_VOLUME = postgres-data
 VERSION = 1.0.0
+GITHUB_SHA ?= $(shell git rev-parse HEAD)
+GITHUB_ACTOR ?= $(shell echo $$GITHUB_ACTOR)
+GITHUB_REGISTRY = ghcr.io
 
 # Pull the Postgres image
 db-pull:
@@ -30,8 +33,18 @@ db-up: network-create volume-create
 
 # Build the Flask app image with versioned tagging
 app-build:
+	app-build:
+	@echo "Logging into GitHub Container Registry (GHCR)..."
+	echo "${GITHUB_TOKEN}" | docker login $(GITHUB_REGISTRY) -u "${GITHUB_ACTOR}" --password-stdin
+
+	@echo "Building the Docker image..."
 	docker build --build-arg VERSION=$(VERSION) -t $(APP_IMAGE):$(VERSION) .
-	docker tag $(APP_IMAGE):$(VERSION) flask-app:$(shell git rev-parse HEAD)
+
+	@echo "Tagging the image with commit SHA..."
+	docker tag $(APP_IMAGE):$(VERSION) $(GITHUB_REGISTRY)/$(GITHUB_ACTOR)/$(APP_IMAGE):$(GITHUB_SHA)
+
+	@echo "Pushing the image to GHCR..."
+	docker push $(GITHUB_REGISTRY)/$(GITHUB_ACTOR)/$(APP_IMAGE):$(GITHUB_SHA)
 
 # Run the Flask app container in the network, inject environment variables
 app-run: network-create

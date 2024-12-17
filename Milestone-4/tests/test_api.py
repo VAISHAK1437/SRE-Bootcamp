@@ -1,119 +1,111 @@
-import sys
-import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-import unittest
+import pytest
+from flask import Flask
+from unittest.mock import patch, MagicMock
 from app import create_app, db
 from app.models import Student
 
-class StudentAPITestCase(unittest.TestCase):
-    def setUp(self):
-        """Setup the test environment."""
-        self.app = create_app()
-        self.client = self.app.test_client()
-        self.app.config['SQLALCHEMY_DATABASE_URI'] = 'DATABASE_URL=postgresql://myuser:mypassword@db:5432/mydb'
-        self.app.config['TESTING'] = True
+@pytest.fixture
+def app():
+    # Create Flask app for testing
+    app = create_app()
+    app.config['TESTING'] = True
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'  # Use in-memory database for isolation
+    with app.app_context():
+        db.create_all()
+    yield app
 
-        with self.app.app_context():
-            db.create_all()
+@pytest.fixture
+def client(app):
+    return app.test_client()
 
-    def tearDown(self):
-        """Clean up after each test."""
-        with self.app.app_context():
-            db.session.remove()
-            db.drop_all()
+### Tests
+def test_healthcheck(client):
+    """Test /healthcheck endpoint"""
+    response = client.get('/api/v1/healthcheck')
+    assert response.status_code == 200
+    assert response.get_json() == {'status': 'healthy'}
 
-    def test_add_student(self):
-        """Test adding a student."""
-        response = self.client.post('/api/v1/students', json={
-            'name': 'John Doe',
-            'age': 20,
-            'grade': 'A'
+@patch('app.routes.db.session')
+def test_add_student(mock_db_session, client):
+    """Test POST /students endpoint"""
+    mock_db_session.add = MagicMock()
+    mock_db_session.commit = MagicMock()
+
+    response = client.post('/api/v1/students', json={
+        'name': 'John Doe',
+        'age': 15,
+        'grade': '10th'
+    })
+
+    assert response.status_code == 201
+    assert 'id' in response.get_json()
+    mock_db_session.add.assert_called_once()
+    mock_db_session.commit.assert_called_once()
+
+@patch('app.models.Student.query')
+def test_get_students(mock_query, client):
+    """Test GET /students endpoint"""
+    mock_query.all.return_value = [
+        Student(id=1, name='John Doe', age=15, grade='10th'),
+        Student(id=2, name='Jane Doe', age=14, grade='9th')
+    ]
+
+    response = client.get('/api/v1/students')
+
+    assert response.status_code == 200
+    data = response.get_json()
+    assert len(data) == 2
+    assert data[0]['name'] == 'John Doe'
+    assert data[1]['grade'] == '9th'
+
+@patch('app.models.Student.query')
+def test_get_student_by_id(mock_query, client):
+    """Test GET /students/<id> endpoint"""
+    mock_query.get.return_value = Student(id=1, name='John Doe', age=15, grade='10th')
+
+    response = client.get('/api/v1/students/1')
+
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data['name'] == 'John Doe'
+    assert data['grade'] == '10th'
+
+def test_get_student_not_found(client):
+    """Test GET /students/<id> endpoint when student doesn't exist"""
+    response = client.get('/api/v1/students/999')
+    assert response.status_code == 404
+    assert 'error' in response.get_json()
+
+@patch('app.models.Student.query')
+def test_delete_student(mock_query, client):
+    """Test DELETE /students/<id> endpoint"""
+    mock_student = Student(id=1, name='John Doe', age=15, grade='10th')
+    mock_query.get.return_value = mock_student
+
+    with patch('app.routes.db.session') as mock_db_session:
+        response = client.delete('/api/v1/students/1')
+
+        assert response.status_code == 200
+        assert response.get_json() == {'message': 'Student deleted successfully'}
+        mock_db_session.delete.assert_called_once_with(mock_student)
+        mock_db_session.commit.assert_called_once()
+
+@patch('app.models.Student.query')
+def test_update_student(mock_query, client):
+    """Test PUT /students/<id> endpoint"""
+    mock_student = Student(id=1, name='John Doe', age=15, grade='10th')
+    mock_query.get.return_value = mock_student
+
+    with patch('app.routes.db.session') as mock_db_session:
+        response = client.put('/api/v1/students/1', json={
+            'name': 'John Updated',
+            'age': 16,
+            'grade': '11th'
         })
-        self.assertEqual(response.status_code, 201)
-        self.assertIn('id', response.json)
 
-    def test_get_students(self):
-        """Test getting all students."""
-        # First, add a student
-        self.client.post('/api/v1/students', json={
-            'name': 'John Doe',
-            'age': 20,
-            'grade': 'A'
-        })
-        
-        response = self.client.get('/api/v1/students')
-        self.assertEqual(response.status_code, 200)
-        self.assertGreater(len(response.json), 0)  # Should return at least one student
-
-    def test_get_student(self):
-        """Test getting a single student by ID."""
-        # Add a student first
-        student = self.client.post('/api/v1/students', json={
-            'name': 'John Doe',
-            'age': 20,
-            'grade': 'A'
-        })
-        student_id = student.json['id']
-
-        response = self.client.get(f'/api/v1/students/{student_id}')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json['id'], student_id)
-        self.assertEqual(response.json['name'], 'John Doe')
-
-    def test_get_student_not_found(self):
-        """Test getting a student that doesn't exist."""
-        response = self.client.get('/api/v1/students/999')
-        self.assertEqual(response.status_code, 404)
-
-    def test_update_student(self):
-        """Test updating a student's information."""
-        # Add a student
-        student = self.client.post('/api/v1/students', json={
-            'name': 'John Doe',
-            'age': 20,
-            'grade': 'A'
-        })
-        student_id = student.json['id']
-
-        # Update the student's information
-        response = self.client.put(f'/api/v1/students/{student_id}', json={
-            'name': 'Jane Doe',
-            'age': 22,
-            'grade': 'B'
-        })
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json['message'], 'Student updated successfully')
-
-        # Verify the update
-        response = self.client.get(f'/api/v1/students/{student_id}')
-        self.assertEqual(response.json['name'], 'Jane Doe')
-        self.assertEqual(response.json['age'], 22)
-        self.assertEqual(response.json['grade'], 'B')
-
-    def test_delete_student(self):
-        """Test deleting a student."""
-        # Add a student
-        student = self.client.post('/api/v1/students', json={
-            'name': 'John Doe',
-            'age': 20,
-            'grade': 'A'
-        })
-        student_id = student.json['id']
-
-        # Delete the student
-        response = self.client.delete(f'/api/v1/students/{student_id}')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json['message'], 'Student deleted successfully')
-
-        # Verify the student is deleted
-        response = self.client.get(f'/api/v1/students/{student_id}')
-        self.assertEqual(response.status_code, 404)
-
-    def test_healthcheck(self):
-        """Test the healthcheck endpoint."""
-        response = self.client.get('/api/v1/healthcheck')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json['status'], 'healthy')
-
-if __name__ == '__main__':
-    unittest.main()
+        assert response.status_code == 200
+        assert response.get_json() == {'message': 'Student updated successfully'}
+        assert mock_student.name == 'John Updated'
+        assert mock_student.age == 16
+        assert mock_student.grade == '11th'
+        mock_db_session.commit.assert_called_once()
