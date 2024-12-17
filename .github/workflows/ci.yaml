@@ -14,13 +14,10 @@ jobs:
         uses: docker/setup-buildx-action@v1
 
       - name: Create Docker Network
-        run: make -C Milestone-4  # Create Docker network
+        run: make -C Milestone-4 network-create
 
       - name: Create Docker Volume
-        run: make -C Milestone-4  # Create Docker volume
-
-      - name: Pull Postgres Image
-        run: make -C Milestone-4  # Pull the Postgres image
+        run: make -C Milestone-4 volume-create 
 
       - name: Run Full Setup
-        run: make -C Milestone-4
+        run: make -C Milestone-4 setup
