@@ -48,7 +48,7 @@ app-run: network-create
 
 app-migrate:
 	# Check if migration files exist; if not, initialize them
-	docker exec -it app sh -c "\
+	docker exec app sh -c "\
 		if [ ! -d migrations/versions ] || [ -z \"\`ls migrations/versions 2>/dev/null\`\" ]; then \
 			echo 'No migrations found. Initializing...'; \
 			python -m flask db init && \
