@@ -31,6 +31,14 @@ db-up: network-create volume-create
 		-e POSTGRES_DB=$$DB_NAME \
 		-p 5432:5432 -d postgres
 
+# Linting target
+lint:
+	@echo "Running linter..."
+	flake8 .
+# Testing target
+test:
+	@echo "Running tests..."
+	pytest tests/
 # Build the Flask app image with versioned tagging
 app-build:
 	@echo "Building the Docker image..."
@@ -69,7 +77,7 @@ clean:
 	# docker volume rm $(DB_VOLUME) || true
 
 # Full setup with backup
-setup: clean db-pull db-up app-build app-run app-migrate
+setup: clean lint test db-pull db-up app-build app-run app-migrate
 
 # Remove old images that are not in use
 prune-old-images:
