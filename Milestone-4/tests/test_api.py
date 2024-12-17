@@ -3,7 +3,6 @@ import sys
 import unittest
 
 from app import create_app, db
-from app.models import Student
 
 # Adjust the system path to include the parent directory
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -72,4 +71,51 @@ class StudentAPITestCase(unittest.TestCase):
 
     def test_update_student(self):
         """Test updating a student's information."""
-       
+        # Add a student
+        student = self.client.post(
+            "/api/v1/students",
+            json={"name": "John Doe", "age": 20, "grade": "A"},
+        )
+        student_id = student.json["id"]
+
+        # Update the student's information
+        response = self.client.put(
+            f"/api/v1/students/{student_id}",
+            json={"name": "Jane Doe", "age": 22, "grade": "B"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json["message"], "Student updated successfully")
+
+        # Verify the update
+        response = self.client.get(f"/api/v1/students/{student_id}")
+        self.assertEqual(response.json["name"], "Jane Doe")
+        self.assertEqual(response.json["age"], 22)
+        self.assertEqual(response.json["grade"], "B")
+
+    def test_delete_student(self):
+        """Test deleting a student."""
+        # Add a student
+        student = self.client.post(
+            "/api/v1/students",
+            json={"name": "John Doe", "age": 20, "grade": "A"},
+        )
+        student_id = student.json["id"]
+
+        # Delete the student
+        response = self.client.delete(f"/api/v1/students/{student_id}")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json["message"], "Student deleted successfully")
+
+        # Verify the student is deleted
+        response = self.client.get(f"/api/v1/students/{student_id}")
+        self.assertEqual(response.status_code, 404)
+
+    def test_healthcheck(self):
+        """Test the healthcheck endpoint."""
+        response = self.client.get("/api/v1/healthcheck")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json["status"], "healthy")
+
+
+if __name__ == "__main__":
+    unittest.main()
