@@ -34,9 +34,6 @@ db-up: network-create volume-create
 # Build the Flask app image with versioned tagging
 app-build:
 	app-build:
-		@echo "Logging into GitHub Container Registry (GHCR)..."
-		echo "${GITHUB_TOKEN}" | docker login $(GITHUB_REGISTRY) -u "${GITHUB_ACTOR}" --password-stdin
-
 		@echo "Building the Docker image..."
 		docker build --build-arg VERSION=$(VERSION) -t $(APP_IMAGE):$(VERSION) .
 
