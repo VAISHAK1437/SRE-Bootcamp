@@ -8,7 +8,13 @@ api_bp = Blueprint("api", __name__)
 def add_student():
     """Add a new student."""
     data = request.get_json()
-    if not data or "name" not in data or "age" not in data or "grade" not in data:
+    data = request.get_json()
+    if (
+        not data or
+        "name" not in data or
+        "age" not in data or
+        "grade" not in data
+    ):
         return jsonify(
             {"error": "Missing required fields"}
         ), 400
@@ -54,7 +60,13 @@ def get_student(id):
 def update_student(id):
     """Update an existing student's information."""
     data = request.get_json()
-    if not data or "name" not in data or "age" not in data or "grade" not in data:
+    data = request.get_json()
+    if (
+        not data or
+        "name" not in data or
+        "age" not in data or
+        "grade" not in data
+    ):
         return jsonify(
             {"error": "Missing required fields"}
         ), 400
