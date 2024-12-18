@@ -10,7 +10,7 @@ class StudentAPITestCase(unittest.TestCase):
         """Setup the test environment."""
         self.app = create_app()
         self.client = self.app.test_client()
-        self.app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://myuser:mypassword@db:5432/mydb'
+        self.app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://myuser:mypassword@my-postgres:5432/mydb'
         self.app.config['TESTING'] = True
 
         with self.app.app_context():

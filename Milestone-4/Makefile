@@ -31,19 +31,20 @@ db-up: network-create volume-create
 		-e POSTGRES_DB=$$DB_NAME \
 		-p 5432:5432 -d postgres
 
-# Install dependencies from requirements.txt
-install-dependencies:
-	@echo "Installing dependencies from requirements.txt..."
-	pip install -r requirements.txt
-
 # Linting target
 lint:
 	@echo "Running linter..."
 	flake8 app/
+
+# pytest-path:
+# 	@echo "Finding pytest path in the container..."
+# 	docker run --rm --entrypoint sh $(APP_IMAGE):$(VERSION) -c "which pytest || find / -name pytest 2>/dev/null"
+
 # Testing target
 test:
-	@echo "Running tests..."
-	pytest tests/
+	@echo "Running tests inside the Docker container..."
+	docker run --rm --network app-network flask-app:1.0.0 python -m pytest /app/tests/
+
 # Build the Flask app image with versioned tagging
 app-build:
 	@echo "Building the Docker image..."
@@ -82,7 +83,7 @@ clean:
 	# docker volume rm $(DB_VOLUME) || true
 
 # Full setup with backup
-setup: install-dependencies lint db-pull db-up app-build app-run app-migrate test
+setup: lint db-pull db-up app-build app-run app-migrate test
 
 # Remove old images that are not in use
 prune-old-images:
