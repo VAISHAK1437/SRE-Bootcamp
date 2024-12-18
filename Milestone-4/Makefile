@@ -31,6 +31,11 @@ db-up: network-create volume-create
 		-e POSTGRES_DB=$$DB_NAME \
 		-p 5432:5432 -d postgres
 
+# Install dependencies from requirements.txt
+install-dependencies:
+	@echo "Installing dependencies from requirements.txt..."
+	pip install -r requirements.txt
+	
 # Linting target
 lint:
 	@echo "Running linter..."
