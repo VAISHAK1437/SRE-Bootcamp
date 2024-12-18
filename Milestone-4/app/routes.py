@@ -9,7 +9,9 @@ def add_student():
     """Add a new student."""
     data = request.get_json()
     if not data or "name" not in data or "age" not in data or "grade" not in data:
-        return jsonify({"error": "Missing required fields"}), 400
+        return jsonify({
+            "error": "Missing required fields"
+        }), 400
 
     student = Student(
         name=data["name"],
@@ -36,7 +38,9 @@ def get_student(id):
     """Get a specific student by ID."""
     student = Student.query.get(id)
     if not student:
-        return jsonify({"error": f"Student with id {id} not found"}), 404
+        return jsonify({
+            "error": f"Student with id {id} not found"
+        }), 404
 
     return jsonify({
         "id": student.id,
@@ -51,11 +55,15 @@ def update_student(id):
     """Update an existing student's information."""
     data = request.get_json()
     if not data or "name" not in data or "age" not in data or "grade" not in data:
-        return jsonify({"error": "Missing required fields"}), 400
+        return jsonify({
+            "error": "Missing required fields"
+        }), 400
 
     student = Student.query.get(id)
     if not student:
-        return jsonify({"error": f"Student with id {id} not found"}), 404
+        return jsonify({
+            "error": f"Student with id {id} not found"
+        }), 404
 
     student.name = data["name"]
     student.age = data["age"]
@@ -69,7 +77,9 @@ def delete_student(id):
     """Delete a specific student by ID."""
     student = Student.query.get(id)
     if not student:
-        return jsonify({"error": f"Student with id {id} not found"}), 404
+        return jsonify({
+            "error": f"Student with id {id} not found"
+        }), 404
 
     db.session.delete(student)
     db.session.commit()
