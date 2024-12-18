@@ -35,7 +35,7 @@ db-up: network-create volume-create
 install-dependencies:
 	@echo "Installing dependencies from requirements.txt..."
 	pip install -r requirements.txt
-	
+
 # Linting target
 lint:
 	@echo "Running linter..."
@@ -82,7 +82,7 @@ clean:
 	# docker volume rm $(DB_VOLUME) || true
 
 # Full setup with backup
-setup: clean lint test db-pull db-up app-build app-run app-migrate
+setup: install-dependencies lint test db-pull db-up app-build app-run app-migrate
 
 # Remove old images that are not in use
 prune-old-images:
