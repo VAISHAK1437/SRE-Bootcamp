@@ -34,7 +34,7 @@ db-up: network-create volume-create
 # Linting target
 lint:
 	@echo "Running linter..."
-	flake8 .
+	flake8 app/
 # Testing target
 test:
 	@echo "Running tests..."
