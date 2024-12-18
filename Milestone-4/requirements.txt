@@ -9,3 +9,4 @@ pytest
 pytest-flask 
 pytest-mock
 flake8
+Werkzeug==2.2.3
