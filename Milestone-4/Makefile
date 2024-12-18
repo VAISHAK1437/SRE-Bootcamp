@@ -82,7 +82,7 @@ clean:
 	# docker volume rm $(DB_VOLUME) || true
 
 # Full setup with backup
-setup: install-dependencies lint test db-pull db-up app-build app-run app-migrate
+setup: install-dependencies lint db-pull db-up app-build app-run app-migrate test
 
 # Remove old images that are not in use
 prune-old-images:
