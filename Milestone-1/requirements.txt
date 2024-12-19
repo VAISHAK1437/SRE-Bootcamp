@@ -5,7 +5,7 @@ click==8.1.7
 Flask==2.3.2
 Flask-Migrate==4.0.7
 Flask-RESTful==0.3.10
-Flask-SQLAlchemy==2.0.36
+Flask-SQLAlchemy==2.5.1
 greenlet==3.1.1
 itsdangerous==2.2.0
 Jinja2==3.1.4
@@ -14,7 +14,7 @@ MarkupSafe==3.0.2
 python-dotenv==1.0.1
 pytz==2024.2
 six==1.16.0
-SQLAlchemy==3.0.5
+SQLAlchemy==1.4.*
 typing_extensions==4.12.2
-Werkzeug==2.2.3
-psycopg2-binary==2.9.8
+Werkzeug==2.3.7
+pytest
